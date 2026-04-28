@@ -131,3 +131,6 @@ dmypy.json
 
 # IDEs
 settings.json
+
+# MyST build outputs
+tests/**/_build
