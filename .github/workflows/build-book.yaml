@@ -4,85 +4,101 @@ on:
   workflow_call:
     inputs:
       environment_name:
-        description: 'Name of conda environment to activate (NO LONGER USED)'
+        description: "Name of conda environment to activate (NO LONGER USED)"
         required: false
-        default: 'cookbook-dev'
+        default: "cookbook-dev"
         type: string
       environment_file:
-        description: 'Name of conda environment file'
+        description: "Name of conda environment file"
         required: false
-        default: 'environment.yml'
+        default: "environment.yml"
         type: string
       path_to_notebooks:
-        description: 'Location of the JupyterBook source relative to repo root'
+        description: "Location of the JupyterBook source relative to repo root"
         required: false
-        default: '.'
+        default: "."
         type: string
       artifact_name:
-        description: 'The name to assign to the built book artifact.'
+        description: "The name to assign to the built book artifact."
         required: false
-        default: 'book-zip'
+        default: "book-zip"
         type: string
       build_command:
-        description: 'The linux command to build the book or site.'
+        description: "The linux command to build the book or site."
         required: false
-        default: 'myst build --execute --html'
+        default: "myst build --execute --html"
         type: string
       output_path:
-        description: 'Path to the built html content relative to `path_to_notebooks`'
+        description:
+          "Path to the built html content relative to `path_to_notebooks`"
         required: false
-        default: '_build/html'
+        default: "_build/html"
         type: string
       build_from_code_artifact:
-        description: 'Should we try to build from a previously uploaded code artifact?'
+        description:
+          "Should we try to build from a previously uploaded code artifact?"
         required: false
-        default: 'false'
+        default: "false"
         type: string
       code_artifact_name:
-        description: 'Name of zipped artifact passed in, instead of checking out the repository.'
+        description:
+          "Name of zipped artifact passed in, instead of checking out the
+          repository."
         required: false
-        default: 'code-zip'
+        default: "code-zip"
         type: string
       workflow:
-        description: 'Identify the workflow that produced the artifact'
+        description: "Identify the workflow that produced the artifact"
         required: false
         default: trigger-book-build.yaml
         type: string
       workflow_conclusion:
-        description: 'Workflow conclusion (options: "failure", "success", "neutral", "cancelled", "skipped", "timed_out", "action_required") or status (options: "completed", "in_progress", "queued") to search for. Use the empty string ("") to ignore status or conclusion in the search.'
+        description:
+          'Workflow conclusion (options: "failure", "success", "neutral",
+          "cancelled", "skipped", "timed_out", "action_required") or status
+          (options: "completed", "in_progress", "queued") to search for. Use the
+          empty string ("") to ignore status or conclusion in the search.'
         required: false
         default: success
         type: string
       base_url:
-        description: 'Determines where the website is served from, including CSS & JS assets (needed for MyST)'
+        description:
+          "Determines where the website is served from, including CSS & JS
+          assets (needed for MyST)"
         required: false
-        default: '/${{ github.event.repository.name }}'
+        default: "/${{ github.event.repository.name }}"
         type: string
 
     secrets:
       PRIVATE_KEY:
-        description: 'Google analytics key needed for metrics page on portal site'
+        description:
+          "Google analytics key needed for metrics page on portal site"
         required: false
       PRIVATE_KEY_ID:
-        description: 'Google analytics key id needed for metrics page on portal site'
+        description:
+          "Google analytics key id needed for metrics page on portal site"
         required: false
       ARM_USERNAME:
-        description: 'Username for the ARM Data Discovery portal (https://adc.arm.gov/armlive/)'
+        description:
+          "Username for the ARM Data Discovery portal
+          (https://adc.arm.gov/armlive/)"
         required: false
       ARM_PASSWORD:
-        description: 'Password for the ARM Data Discovery portal (https://adc.arm.gov/armlive/)'
+        description:
+          "Password for the ARM Data Discovery portal
+          (https://adc.arm.gov/armlive/)"
         required: false
       AQS_USERNAME:
-        description: 'Username for the AQS Data Portal'
+        description: "Username for the AQS Data Portal"
         required: false
       AQS_KEY:
-        description: 'Key for the AQS Data Portal'
+        description: "Key for the AQS Data Portal"
         required: false
       EARTHDATA_USERNAME:
-        description: 'NASA Earthdata API Username'
+        description: "NASA Earthdata API Username"
         required: false
       EARTHDATA_PASSWORD:
-        description: 'NASA Earthdata API Password'
+        description: "NASA Earthdata API Password"
         required: false
 
 env:
@@ -117,18 +133,18 @@ jobs:
         if: inputs.build_from_code_artifact == 'true'
         run: |
           unzip pr_code.zip
-          rm -f pr_code.zip   
+          rm -f pr_code.zip
 
       - name: Get GitHub environment variables
         id: get-env
         uses: FranzDiebold/github-env-vars-action@v2
-      
+
       - name: Check for config file
         id: check_config
         uses: andstor/file-existence-action@v3
         with:
           files: "${{ inputs.path_to_notebooks }}/_config.yml"
-      
+
       - name: Parse config file
         id: parse_config
         if: steps.check_config.outputs.files_exists == 'true'
@@ -156,17 +172,14 @@ jobs:
         run: |
           echo '(DEBUG) The value of steps.env_change.outputs.any_changed is:'
           echo ${{ steps.env_change.outputs.any_changed }}
-      
+
       - name: Setup environment with micromamba
         uses: mamba-org/setup-micromamba@v2
         with:
           environment-file: ${{ inputs.environment_file }}
-      
+
       - name: Create book build environment
-        if: |
-          (inputs.use_cached_environment != 'true'
-          || steps.cache.outputs.cache-hit != 'true')
-          && steps.parse_config.outputs.execute_notebooks == 'binder'
+        if: steps.parse_config.outputs.execute_notebooks == 'binder'
         run: |
           conda install -c conda-forge jupyter-book pip
           conda install sphinx-pythia-theme
@@ -186,7 +199,7 @@ jobs:
           outfile = open("notebook_paths", "w")
           for path in notebooks:
               outfile.write(path + ' ')
-          outfile.close() # Writing these out to a file because I can't figure out how to set an environment variable from a python script 
+          outfile.close() # Writing these out to a file because I can't figure out how to set an environment variable from a python script
 
       - name: Execute notebooks via binderbot using existing image
         if: |
@@ -206,10 +219,12 @@ jobs:
           echo "using the existing binder image from the main branch"
           python -m binderbot.cli --binder-url ${{ steps.parse_config.outputs.binderhub_url }} --repo ${{ github.repository }} --ref main --nb-timeout ${{ steps.parse_config.outputs.timeout }} $NOTEBOOKS --pass-env-var ARM_USERNAME --pass-env-var ARM_PASSWORD
 
-      - name: Execute notebooks via binderbot using new image with latest environment
+      - name:
+          Execute notebooks via binderbot using new image with latest
+          environment
         if: |
-            ( steps.parse_config.outputs.execute_notebooks == 'binder'
-            && steps.env_change.outputs.any_changed == 'true' )
+          ( steps.parse_config.outputs.execute_notebooks == 'binder'
+          && steps.env_change.outputs.any_changed == 'true' )
         env:
           ARM_USERNAME: ${{ secrets.ARM_USERNAME }}
           ARM_PASSWORD: ${{ secrets.ARM_PASSWORD }}

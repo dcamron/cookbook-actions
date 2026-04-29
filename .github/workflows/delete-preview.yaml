@@ -21,4 +21,6 @@ jobs:
         uses: stefanzweifel/git-auto-commit-action@v7
         with:
           branch: gh-pages
-          commit_message: Delete preview for pull request \#${{ github.event.pull_request.number }}
+          commit_message:
+            Delete preview for pull request \#${{
+            github.event.pull_request.number }}

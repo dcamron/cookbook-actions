@@ -1,3 +1,3 @@
 # Default
-This is the default test Cookbook.
 
+This is the default test Cookbook.

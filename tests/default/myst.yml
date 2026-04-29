@@ -16,6 +16,5 @@ project:
       children:
         - file: notebooks/notebook-template.ipynb
   jupyter:
-      binder:
-        repo: projectpythia/cookbook-actions
-
+    binder:
+      repo: projectpythia/cookbook-actions

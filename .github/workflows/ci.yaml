@@ -11,7 +11,7 @@ on:
       - ".github/workflows/**"
       - "tests/**"
   schedule:
-    - cron: '0 3 * * *'
+    - cron: "0 3 * * *"
   workflow_dispatch:
 
 concurrency:
@@ -96,4 +96,3 @@ jobs:
       pull_request_number: ${{ github.event.pull_request.number }}
       sha: ${{ github.event.pull_request.head.sha }}
       site_name: Test cookbook ${{ matrix.cookbook }}
-

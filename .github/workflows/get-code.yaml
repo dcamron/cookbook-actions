@@ -4,12 +4,13 @@ on:
   workflow_call:
     inputs:
       code_artifact_name:
-        description: "Name of the code zip artifact, usually tagged with a PR number"
+        description:
+          "Name of the code zip artifact, usually tagged with a PR number"
         required: false
-        default: 'code-zip'
+        default: "code-zip"
         type: string
 
-# instead of calling build-book directly, we will create and upload an artifact containing the source 
+# instead of calling build-book directly, we will create and upload an artifact containing the source
 # For security reasons, we strip out the .github directory
 #  So a PR cannot introduce malicious workflow code
 
@@ -21,7 +22,7 @@ jobs:
         shell: bash -l {0}
     steps:
       - uses: actions/checkout@v6
-      
+
       - name: Remove .github directory
         id: remove_directory
         run: |
