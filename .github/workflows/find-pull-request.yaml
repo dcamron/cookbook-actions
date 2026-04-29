@@ -14,12 +14,21 @@ jobs:
   find-pr:
     runs-on: ubuntu-latest
     outputs:
-      number: ${{ steps.find-pull-request.outputs.pullRequestNumber }}
-      sha: ${{ steps.find-pull-request.outputs.mergeCommitSha }}
+      number: ${{ steps.find-pull-request.outputs.number }}
+      sha: ${{ steps.find-pull-request.outputs.sha }}
     steps:
       - name: Find Pull Request
         id: find-pull-request
-        uses: potiuk/get-workflow-origin@v1_1
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          sourceRunId: ${{ github.event.workflow_run.id }}
+        shell: bash
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          # Fetch first pull request with associated head SHA of actions run
+          pr_info=$(gh api /repos/${{ github.repository }}/actions/runs/${{ github.event.workflow_run.id }} --jq '.pull_requests[0]')
+          
+          # Extract number and head SHA
+          number=$(echo "$pr_info" | jq -r '.number')
+          sha=$(echo "$pr_info" | jq -r '.head.sha')
+          
+          echo "number=$number" >> $GITHUB_OUTPUT
+          echo "sha=$sha" >> $GITHUB_OUTPUT
