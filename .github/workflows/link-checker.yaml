@@ -17,7 +17,7 @@ on:
         description:
           "The linux command to run the link checker for the book or site"
         required: false
-        default: "myst build --check-links"
+        default: "myst build --check-links --strict"
         type: string
 
 concurrency:
