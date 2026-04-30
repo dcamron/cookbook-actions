@@ -1,11 +1,21 @@
 version: 2
 updates:
-  # - package-ecosystem: pip
-  #   directory: "/"
-  #   schedule:
-  #     interval: daily
   - package-ecosystem: "github-actions"
     directory: "/"
     schedule:
-      # Check for updates once a week
       interval: "weekly"
+    groups:
+      workflows:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "conda"
+    directories:
+      - "tests/**/*"
+    schedule:
+      interval: "daily"
+    groups:
+      test_environments:
+        group-by: "dependency-name"
+
