@@ -1,0 +1,11 @@
+name: cleanup-preview
+
+on:
+  pull_request:
+    types: closed
+
+jobs:
+  delete:
+    if: github.event.pull_request.merged == true
+    uses: ProjectPythia/cookbook-actions/.github/workflows/delete-preview.yaml@main
+
