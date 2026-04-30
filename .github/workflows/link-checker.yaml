@@ -3,11 +3,6 @@ name: link-checker
 on:
   workflow_call:
     inputs:
-      environment_name: # Ignored! Just here for backwards compatibility
-        description: "Name of conda environment to activate"
-        required: false
-        default: "cookbook-dev"
-        type: string
       environment_file:
         description: "Name of conda environment file"
         required: false
@@ -17,13 +12,6 @@ on:
         description: "Location of the JupyterBook source relative to repo root"
         required: false
         default: "./"
-        type: string
-      use_cached_environment: # Ignored! Just here for backwards compatibility
-        description:
-          "Flag for whether we should attempt to retrieve a previously cached
-          environment."
-        required: false
-        default: "true"
         type: string
       build_command:
         description:
@@ -49,23 +37,6 @@ jobs:
         uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
         with:
           environment-file: ${{ inputs.environment_file }}
-
-      - name: Check for config file
-        id: check_config
-        uses: andstor/file-existence-action@558493d6c74bf472d87c84eab196434afc2fa029 # v3.1.0
-        with:
-          files: "${{ inputs.path_to_notebooks }}/_config.yml"
-
-      - name: Disable notebook execution
-        if: steps.check_config.outputs.files_exists == 'true'
-        shell: python
-        run: |
-          import yaml
-          with open('${{ inputs.path_to_notebooks }}/_config.yml') as f:
-            data = yaml.safe_load(f)
-          data['execute']['execute_notebooks'] = 'off'
-          with open('${{ inputs.path_to_notebooks }}/_config.yml', 'w') as f:
-            yaml.dump(data, f)
 
       - name: Check external links
         run: |
