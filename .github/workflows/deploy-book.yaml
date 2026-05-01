@@ -26,6 +26,11 @@ on:
         required: false
         default: "_build/html"
         type: string
+      dry_run:
+        description: "Toggle read-only reporting for testing"
+        required: false
+        default: false
+        type: boolean
 
 jobs:
   deploy:
@@ -44,10 +49,17 @@ jobs:
           run_id: ${{ github.event.workflow_run.id }}
           path: ${{ inputs.publish_dir }}
 
+      - name: Test and report
+        run: |
+          echo "Would push contents of ${{ inputs.publish_dir }}"
+          echo "to gh-pages:${{ inputs.destination_dir }}"
+          echo "---"
+          echo "Contents from ${{ inputs.artifact_name }}:"
+          [[ $(ls -A ${{ inputs.publish_dir }}) ]] && echo "found." || echo "::error ::No artifact files found"
+
       - name: Deploy to GitHub Pages
         uses: JamesIves/github-pages-deploy-action@d92aa235d04922e8f08b40ce78cc5442fcfbfa2f # v4.8.0
-        if: |
-          (github.ref == 'refs/heads/main')
+        if: github.ref == 'refs/heads/main' && inputs.dry_run == false
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           git-config-name: 'github-actions[bot]'
