@@ -47,20 +47,6 @@ on:
         required: false
         default: "code-zip"
         type: string
-      workflow:
-        description: "Identify the workflow that produced the artifact"
-        required: false
-        default: trigger-book-build.yaml
-        type: string
-      workflow_conclusion:
-        description:
-          'Workflow conclusion (options: "failure", "success", "neutral",
-          "cancelled", "skipped", "timed_out", "action_required") or status
-          (options: "completed", "in_progress", "queued") to search for. Use the
-          empty string ("") to ignore status or conclusion in the search.'
-        required: false
-        default: success
-        type: string
       base_url:
         description:
           "Determines where the website is served from, including CSS & JS
@@ -109,9 +95,6 @@ jobs:
   build:
     runs-on: ubuntu-latest
     timeout-minutes: 30
-    defaults:
-      run:
-        shell: bash -leo pipefail {0}
     steps:
       - name: Checkout the code from the repo
         if: inputs.build_from_code_artifact == 'false'
@@ -121,19 +104,11 @@ jobs:
       - name: Download code artifact
         id: get_code_artifact
         if: inputs.build_from_code_artifact == 'true'
-        uses: dawidd6/action-download-artifact@b6e2e70617bc3265edd6dab6c906732b2f1ae151 # v21
+        uses: actions/download-artifact@3e5f45b2cfb9172054b4087a40e8e0b5a5461e7c # v8.0.1
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          workflow: ${{ inputs.workflow }}
-          run_id: ${{ github.event.workflow_run.id }}
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+          run-id: ${{ github.event.workflow_run.id }}
           name: ${{ inputs.code_artifact_name }}
-          workflow_conclusion: ${{ inputs.workflow_conclusion }}
-
-      - name: Unzip the code
-        if: inputs.build_from_code_artifact == 'true'
-        run: |
-          unzip pr_code.zip
-          rm -f pr_code.zip
 
       - name: Setup environment with micromamba
         uses: mamba-org/setup-micromamba@d7c9bd84e824b79d2af72a2d4196c7f4300d3476 # v3.0.0
