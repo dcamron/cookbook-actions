@@ -16,11 +16,6 @@ on:
         required: false
         default: ""
         type: string
-      is_preview:
-        description: "Are we deploying a preview?"
-        required: false
-        default: "false"
-        type: string
       publish_dir:
         description: "Publish dir for the action"
         required: false
