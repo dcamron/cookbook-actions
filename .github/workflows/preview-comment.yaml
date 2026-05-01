@@ -18,6 +18,42 @@ on:
         type: string
 
 jobs:
+  make-checks:
+    runs-on: ubuntu-slim
+    steps:
+      - name: Create in-progress check run
+        if: github.event.workflow_run.conclusion == ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh api -X POST \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            /repos/${{ github.repository }}/check-runs \
+            -f name='PR Preview' \
+            -f head_sha='${{ inputs.sha }}' \
+            -f status='in_progress' \
+            -f external_id='preview-${{ inputs.sha }}'
+
+      - name: Update completed check run
+        if: github.event.workflow_run.conclusion != ''
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          check_run_id=$(gh api \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "/repos/${{ github.repository }}/commits/${{ inputs.sha }}/check-runs" \
+            --jq '[.check_runs[] | select(.name == "PR Preview")] | last | .id')
+
+          gh api -X PATCH \
+            -H "Accept: application/vnd.github+json" \
+            -H "X-GitHub-Api-Version: 2026-03-10" \
+            "/repos/${{ github.repository }}/check-runs/${check_run_id}" \
+            -f status='completed' \
+            -f conclusion='${{ github.event.workflow_run.conclusion }}' \
+            -f completed_at="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+
   comment:
     runs-on: ubuntu-slim
     steps:
