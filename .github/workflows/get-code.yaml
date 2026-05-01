@@ -16,7 +16,7 @@ on:
 
 jobs:
   get-code:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-slim
     defaults:
       run:
         shell: bash -l {0}
