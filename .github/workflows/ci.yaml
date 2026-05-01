@@ -14,6 +14,9 @@ on:
     - cron: "0 3 * * *"
   workflow_dispatch:
 
+permissions:
+  contents: read
+
 concurrency:
   group: $${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
@@ -30,8 +33,6 @@ jobs:
           ./actionlint -color
 
   build-book:
-    permissions:
-      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -46,8 +47,6 @@ jobs:
     secrets: inherit
 
   link-checker:
-    permissions:
-      contents: read
     strategy:
       fail-fast: false
       matrix:
@@ -58,51 +57,3 @@ jobs:
       path_to_notebooks: tests/${{ matrix.cookbook }}
       environment_file: tests/${{ matrix.cookbook }}/environment.yml
 
-  deploy-book:
-    if: github.event_name == 'push'
-    permissions:
-      contents: write
-    needs: build-book
-    strategy:
-      fail-fast: false
-      matrix:
-        cookbook:
-          - default
-    uses: ./.github/workflows/deploy-book.yaml
-    with:
-      artifact_name: ${{ matrix.cookbook }}-book-zip
-      destination_dir: _ci/${{ matrix.cookbook }}
-      publish_dir: tests/${{ matrix.cookbook }}/_build/html
-
-  deploy-preview:
-    if: github.event_name == 'pull_request'
-    permissions:
-      contents: write
-    needs: build-book
-    strategy:
-      fail-fast: false
-      matrix:
-        cookbook:
-          - default
-    uses: ./.github/workflows/deploy-book.yaml
-    with:
-      artifact_name: ${{ matrix.cookbook }}-book-zip
-      destination_dir: _preview/ci-${{ matrix.cookbook }}
-      publish_dir: tests/${{ matrix.cookbook }}/_build/html
-
-  preview-comment:
-    permissions:
-      issues: read
-      pull-requests: write
-    needs: deploy-preview
-    if: github.event_name == 'pull_request'
-    strategy:
-      fail-fast: false
-      matrix:
-        cookbook:
-          - default
-    uses: ./.github/workflows/preview-comment.yaml
-    with:
-      pull_request_number: ${{ github.event.pull_request.number }}
-      sha: ${{ github.event.pull_request.head.sha }}
-      site_name: Test cookbook ${{ matrix.cookbook }}
